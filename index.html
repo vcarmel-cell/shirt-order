@@ -64,7 +64,7 @@
   .field input:focus, .field select:focus { outline: none; border-color: #C9A227; }
 
   .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .choice-list { display: grid; gap: 10px; }
+  .choice-list { display: grid; gap: 10px; margin-top: 10px; }
   .choice-btn {
     padding: 12px 14px; border-radius: 14px; border: 2px solid #DADCE6;
     background: #fff; cursor: pointer; font-family: inherit;
@@ -74,6 +74,17 @@
   .choice-list .choice-btn { text-align: right; }
   .choice-btn:hover { border-color: #C9A227; }
   .choice-btn.selected { border-color: #1B2C5C; background: #EEF1FA; color: #1B2C5C; }
+
+  .image-choice {
+    border: 2px solid #DADCE6; border-radius: 14px; padding: 8px;
+    cursor: pointer; text-align: center; background: #fff; transition: all 0.15s;
+  }
+  .image-choice img { width: 100%; border-radius: 10px; display: block; margin-bottom: 6px; }
+  .image-choice .cap { font-size: 12px; font-weight: 700; color: #2B2B40; }
+  .image-choice:hover { border-color: #C9A227; }
+  .image-choice.selected { border-color: #1B2C5C; background: #EEF1FA; }
+
+  .section-label { font-size: 12px; font-weight: 700; color: #8A8A9E; margin: 14px 0 8px; }
 
   .btn-row { display: flex; gap: 10px; margin-top: 20px; }
   .submit-btn {
@@ -122,13 +133,15 @@
   <!-- Step 2: Motto -->
   <div class="step hidden" id="step2">
     <div class="header">
-      <h1>בחרו את המוטו שלכם</h1>
-      <p>אפשר לבחור מתוך הרשימה, או להציע מוטו משלכם</p>
+      <h1>בחרו את עיצוב החולצה</h1>
+      <p>תמונה או משפט לגב החולצה - בחרו אפשרות אחת</p>
     </div>
+    <div class="choice-grid" id="mottoImageChoices"></div>
+    <div class="section-label">או בחרו משפט</div>
     <div class="choice-list" id="mottoChoices"></div>
     <div class="field hidden" id="customMottoWrap">
-      <label for="customMotto">המוטו שאני מציע/ה</label>
-      <input type="text" id="customMotto" placeholder="כתבו כאן את המוטו שלכם">
+      <label for="customMotto">המשפט שאני מציע/ה</label>
+      <input type="text" id="customMotto" placeholder="כתבו כאן את המשפט שלכם">
     </div>
     <div class="btn-row">
       <button type="button" class="secondary-btn" id="backTo1">חזרה</button>
@@ -197,12 +210,17 @@
     // Placeholder colors/designs — replace with the real options once decided
     colorOptions: ["לבן", "שחור", "נייבי"],
 
-    // Placeholder motto options — replace with the real shortlist once decided.
-    // A "custom suggestion" choice is always added automatically at the end of this list.
+    // Design options for the back of the shirt - two images and four phrases.
+    // Exactly one of all of these (including the custom-suggestion option) can be chosen.
+    designImages: [
+      { id: "design-en", src: "design-en.jpg", label: "עיצוב באנגלית" },
+      { id: "design-he", src: "design-he.jpg", label: "עיצוב בעברית" }
+    ],
     mottoOptions: [
-      "מוטו לדוגמה 1",
-      "מוטו לדוגמה 2",
-      "מוטו לדוגמה 3"
+      "הכוח להרגיש בבית",
+      "תמיד לחזור הביתה | קיבוץ ניצנים",
+      "בית. חוזקה. משפחה.",
+      "שנת מצווה, שנת תקווה"
     ]
   };
 
@@ -257,6 +275,20 @@
   }
   renderColors();
 
+  function renderMottoImages() {
+    const wrap = document.getElementById('mottoImageChoices');
+    wrap.innerHTML = '';
+    EVENT.designImages.forEach(img => {
+      const card = document.createElement('div');
+      card.className = 'image-choice';
+      card.dataset.motto = img.id;
+      card.innerHTML = `<img src="${img.src}" alt="${img.label}"><div class="cap">${img.label}</div>`;
+      card.addEventListener('click', () => selectMotto(img.id, false));
+      wrap.appendChild(card);
+    });
+  }
+  renderMottoImages();
+
   function renderMottos() {
     const wrap = document.getElementById('mottoChoices');
     wrap.innerHTML = '';
@@ -264,7 +296,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'choice-btn';
-      btn.textContent = motto;
+      btn.textContent = `"${motto}"`;
       btn.dataset.motto = motto;
       btn.addEventListener('click', () => selectMotto(motto, false));
       wrap.appendChild(btn);
@@ -272,7 +304,7 @@
     const customBtn = document.createElement('button');
     customBtn.type = 'button';
     customBtn.className = 'choice-btn';
-    customBtn.textContent = 'אחר - אני מציע/ה מוטו משלי';
+    customBtn.textContent = 'אחר - אני מציע/ה משפט משלי';
     customBtn.dataset.motto = CUSTOM_MOTTO_VALUE;
     customBtn.addEventListener('click', () => selectMotto(CUSTOM_MOTTO_VALUE, true));
     wrap.appendChild(customBtn);
@@ -337,6 +369,9 @@
   function selectMotto(motto, isCustom) {
     document.querySelectorAll('#mottoChoices .choice-btn').forEach(b => {
       b.classList.toggle('selected', b.dataset.motto === motto);
+    });
+    document.querySelectorAll('#mottoImageChoices .image-choice').forEach(c => {
+      c.classList.toggle('selected', c.dataset.motto === motto);
     });
     mottoIsCustom = isCustom;
     if (isCustom) {
