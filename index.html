@@ -216,11 +216,14 @@
       { id: "design-en", src: "design-en.jpg", label: "עיצוב באנגלית" },
       { id: "design-he", src: "design-he.jpg", label: "עיצוב בעברית" }
     ],
+    // Each item is either a plain phrase string, or {text, author} for a quote with attribution.
+    // A "custom suggestion" choice is always appended automatically as the last option.
     mottoOptions: [
       "הכוח להרגיש בבית",
       "תמיד לחזור הביתה | קיבוץ ניצנים",
       "בית. חוזקה. משפחה.",
-      "שנת מצווה, שנת תקווה"
+      "שנת מצווה, שנת תקווה",
+      { text: "ערכים אינם נמדדים במילים גבוהות, אלא במעשים הקטנים של כל יום: בהושטת יד, בסבלנות ובכבוד לאדם באשר הוא.", author: "אברהם הרשקו" }
     ]
   };
 
@@ -289,16 +292,25 @@
   }
   renderMottoImages();
 
+  function mottoValue(item) {
+    if (typeof item === 'string') return item;
+    return item.author ? `${item.text} (${item.author})` : item.text;
+  }
+
   function renderMottos() {
     const wrap = document.getElementById('mottoChoices');
     wrap.innerHTML = '';
-    EVENT.mottoOptions.forEach(motto => {
+    EVENT.mottoOptions.forEach(item => {
+      const text = typeof item === 'string' ? item : item.text;
+      const author = typeof item === 'string' ? null : item.author;
+      const value = mottoValue(item);
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'choice-btn';
-      btn.textContent = `"${motto}"`;
-      btn.dataset.motto = motto;
-      btn.addEventListener('click', () => selectMotto(motto, false));
+      btn.innerHTML = `"${text}"` + (author ? `<br><span style="font-weight:400;font-size:12px;color:#8A8A9E;">(${author})</span>` : '');
+      btn.dataset.motto = value;
+      btn.addEventListener('click', () => selectMotto(value, false));
       wrap.appendChild(btn);
     });
     const customBtn = document.createElement('button');
