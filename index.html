@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הזמנת חולצה - סיום שנת בר/בת מצווה</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(160deg, #0F1B3D 0%, #1B2C5C 55%, #24356E 100%);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 16px;
+    direction: rtl;
+    color: #1A1A2E;
+  }
+  .card {
+    background: #fff;
+    border-radius: 22px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  .header {
+    padding: 26px 24px 18px;
+    text-align: center;
+  }
+  .header h1 { font-size: 20px; color: #1A1A2E; margin-bottom: 6px; }
+  .header p { font-size: 13px; color: #5B5B6E; }
+
+  .details {
+    padding: 0 24px 8px;
+    display: grid;
+    gap: 12px;
+  }
+  .detail-row {
+    display: flex; align-items: center; gap: 12px;
+    background: #F6F4EC;
+    border: 1px solid #EAE3C9;
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+  .detail-row .icon { font-size: 20px; flex-shrink: 0; width: 26px; text-align: center; }
+  .detail-row .text { font-size: 14px; color: #2B2B40; line-height: 1.4; }
+  .detail-row .text b { display: block; font-size: 15px; color: #1A1A2E; }
+
+  form { padding: 22px 24px 26px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; color: #2B2B40; margin-bottom: 6px; }
+  .field input[type=text], .field select {
+    width: 100%; padding: 12px 14px; border-radius: 12px;
+    border: 1.5px solid #DADCE6; font-size: 15px; font-family: inherit;
+    direction: rtl; background: #fff;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #C9A227; }
+
+  .size-group-label { font-size: 11px; color: #8A8A9E; margin: 4px 0 2px; }
+
+  .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choice-btn {
+    padding: 12px 10px; border-radius: 14px; border: 2px solid #DADCE6;
+    background: #fff; cursor: pointer; font-family: inherit;
+    font-size: 14px; font-weight: 700; color: #2B2B40;
+    transition: all 0.15s;
+  }
+  .choice-btn:hover { border-color: #C9A227; }
+  .choice-btn.selected { border-color: #1B2C5C; background: #EEF1FA; color: #1B2C5C; }
+
+  .submit-btn {
+    width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, #1B2C5C, #0F1B3D); color: #fff;
+    font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .submit-btn:hover { opacity: 0.92; }
+  .submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .hint { font-size: 12px; color: #8A8A9E; margin-top: 10px; text-align: center; }
+  .error-msg { color: #DC2626; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+
+  .thankyou { padding: 44px 28px; text-align: center; display: none; }
+  .thankyou .emoji { font-size: 52px; margin-bottom: 14px; }
+  .thankyou h2 { font-size: 20px; color: #1A1A2E; margin-bottom: 8px; }
+  .thankyou p { font-size: 14px; color: #5B5B6E; line-height: 1.5; }
+  .thankyou .edit-link { margin-top: 18px; display: inline-block; font-size: 13px; color: #0369A1; cursor: pointer; text-decoration: underline; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1 id="pageTitle">הזמנת חולצה</h1>
+    <p id="pageSubtitle">לקראת סיום שנת בר/בת המצווה של השכבה</p>
+  </div>
+
+  <div class="details" id="eventDetails">
+    <!-- filled by script from EVENT config -->
+  </div>
+
+  <form id="orderForm">
+    <div class="field">
+      <label for="fullName">שם מלא</label>
+      <input type="text" id="fullName" placeholder="שם הילד/ה" required>
+    </div>
+
+    <div class="field">
+      <label for="sizeSelect">מידה</label>
+      <select id="sizeSelect" required>
+        <option value="" disabled selected>בחרו מידה</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>צבע / עיצוב</label>
+      <div class="choice-grid" id="colorChoices"></div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn" disabled>שליחת הזמנה</button>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="hint" id="deadlineHint"></div>
+  </form>
+
+  <div class="thankyou" id="thankyou">
+    <div class="emoji">👕</div>
+    <h2>תודה, ההזמנה נקלטה!</h2>
+    <p>אפשר לעדכן את הפרטים עד למועד הסגירה.</p>
+    <span class="edit-link" id="editLink">עדכון ההזמנה</span>
+  </div>
+</div>
+
+<script>
+  // ---- Config: edit these to match the final event details ----
+  const EVENT = {
+    // Free-text lines shown above the form (map/venue link etc). Leave the array empty to hide this block.
+    infoLines: [
+      // { icon: "📅", label: "מועד סגירת ההזמנות", value: "לעדכן תאריך" }
+    ],
+    orderDeadline: "לעדכן תאריך", // shown in the hint line under the button
+
+    // Available sizes, shown in the dropdown in this order
+    sizeGroups: [
+      { label: "", sizes: ["14", "16", "18", "XS", "S", "M"] }
+    ],
+
+    // Placeholder colors/designs — replace with the real options once decided
+    colorOptions: ["לבן", "שחור", "נייבי"]
+  };
+
+  function renderEventDetails() {
+    const wrap = document.getElementById('eventDetails');
+    wrap.innerHTML = '';
+    EVENT.infoLines.forEach(row => {
+      wrap.innerHTML += `
+        <div class="detail-row">
+          <span class="icon">${row.icon}</span>
+          <span class="text"><b>${row.value}</b>${row.label}</span>
+        </div>`;
+    });
+  }
+  renderEventDetails();
+
+  function renderSizes() {
+    const select = document.getElementById('sizeSelect');
+    EVENT.sizeGroups.forEach(group => {
+      const container = group.label ? document.createElement('optgroup') : select;
+      if (group.label) container.label = group.label;
+      group.sizes.forEach(size => {
+        const opt = document.createElement('option');
+        opt.value = size;
+        opt.textContent = size;
+        container.appendChild(opt);
+      });
+      if (group.label) select.appendChild(container);
+    });
+  }
+  renderSizes();
+
+  function renderColors() {
+    const wrap = document.getElementById('colorChoices');
+    wrap.innerHTML = '';
+    EVENT.colorOptions.forEach(color => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.textContent = color;
+      btn.dataset.color = color;
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedColor = color;
+        updateSubmitState();
+      });
+      wrap.appendChild(btn);
+    });
+  }
+  renderColors();
+
+  document.getElementById('deadlineHint').textContent = EVENT.orderDeadline
+    ? `ניתן לעדכן את ההזמנה עד ${EVENT.orderDeadline}`
+    : '';
+
+  // ---- Firebase ----
+  let fdb = null;
+  function loadScript(src) {
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = () => resolve(true); s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+  async function initFirebase() {
+    await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js');
+    await loadScript('firebase-config.js');
+    try {
+      if (typeof firebase === 'undefined' || typeof firebaseConfig === 'undefined') throw new Error('SDK/config missing');
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      fdb = firebase.firestore();
+      await firebase.auth().signInAnonymously();
+      return true;
+    } catch (e) {
+      console.warn('Firebase init failed:', e.message);
+      return false;
+    }
+  }
+  const fbReady = initFirebase();
+
+  // ---- Form state ----
+  const STORAGE_KEY = 'shirt-order-id';
+  let selectedColor = null;
+
+  const sizeSelect = document.getElementById('sizeSelect');
+  const submitBtn = document.getElementById('submitBtn');
+  const form = document.getElementById('orderForm');
+  const errorMsg = document.getElementById('errorMsg');
+  const thankyou = document.getElementById('thankyou');
+
+  function updateSubmitState() {
+    const name = document.getElementById('fullName').value.trim();
+    submitBtn.disabled = !(name && sizeSelect.value && selectedColor);
+  }
+  document.getElementById('fullName').addEventListener('input', updateSubmitState);
+  sizeSelect.addEventListener('change', updateSubmitState);
+
+  document.getElementById('editLink').addEventListener('click', () => {
+    thankyou.style.display = 'none';
+    form.classList.remove('hidden');
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.style.display = 'none';
+    const name = document.getElementById('fullName').value.trim();
+    if (!name || !sizeSelect.value || !selectedColor) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'שולח...';
+
+    try {
+      await fbReady;
+      if (!fdb) throw new Error('no-db');
+
+      const data = {
+        name,
+        size: sizeSelect.value,
+        color: selectedColor,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      let docId = localStorage.getItem(STORAGE_KEY);
+      if (docId) {
+        await fdb.collection('shirt-orders').doc(docId).set(data, { merge: true });
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        const ref = await fdb.collection('shirt-orders').add(data);
+        docId = ref.id;
+        localStorage.setItem(STORAGE_KEY, docId);
+      }
+      form.classList.add('hidden');
+      thankyou.style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      errorMsg.textContent = 'אירעה שגיאה בשליחה. נסו שוב או צרו קשר.';
+      errorMsg.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'שליחת הזמנה';
+    }
+  });
+
+  // ---- Prefill if this browser already submitted ----
+  (async () => {
+    const docId = localStorage.getItem(STORAGE_KEY);
+    if (!docId) return;
+    await fbReady;
+    if (!fdb) return;
+    try {
+      const snap = await fdb.collection('shirt-orders').doc(docId).get();
+      if (snap.exists) {
+        const d = snap.data();
+        document.getElementById('fullName').value = d.name || '';
+        sizeSelect.value = d.size || '';
+        if (d.color) {
+          selectedColor = d.color;
+          document.querySelectorAll('.choice-btn').forEach(b => {
+            if (b.dataset.color === d.color) b.classList.add('selected');
+          });
+        }
+        updateSubmitState();
+        form.classList.add('hidden');
+        thankyou.style.display = 'block';
+      }
+    } catch (e) { console.warn(e); }
+  })();
+</script>
+
+</body>
+</html>

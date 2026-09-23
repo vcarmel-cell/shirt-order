@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rsvps/{docId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && request.resource.data.name is string
+        && request.resource.data.attending is bool
+        && request.resource.data.count is number
+        && request.resource.data.count >= 0
+        && request.resource.data.count <= 20;
+      allow delete: if false;
+    }
+    match /shirt-orders/{docId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && request.resource.data.name is string
+        && request.resource.data.size is string
+        && request.resource.data.color is string;
+      allow delete: if false;
+    }
+  }
+}

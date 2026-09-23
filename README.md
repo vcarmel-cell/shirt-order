@@ -1,0 +1,21 @@
+# הזמנת חולצה - סיום שנת בר/בת מצווה
+
+דף הזמנת חולצה (שם + מידה + צבע/עיצוב) לכל השכבה, לקראת אירוע הסיום.
+
+## Firebase
+
+משתמש מחדש בפרויקט הקיים `matan-barmitzvah` (Firestore + Anonymous Auth כבר מופעלים שם), אך באוסף (collection) נפרד בשם `shirt-orders` - כדי לא לגעת בנתוני אישורי ההגעה הקיימים.
+
+חוקי האבטחה המעודכנים (כוללים גם את `rsvps` הקיים וגם את `shirt-orders` החדש) נמצאים ב-`firestore.rules`. **יש לפרסם אותם ידנית** ב-Firebase Console → Firestore Database → Rules (או להריץ `firebase deploy --only firestore:rules --project matan-barmitzvah`), אחרת הטפסים לא יצליחו לשמור.
+
+## עריכת אפשרויות הטופס
+
+בתוך `index.html`, באובייקט `EVENT` בתחילת ה-`<script>`:
+- `sizeGroups` - רשימת המידות (כרגע: 14 / 16 / 18 / XS / S / M)
+- `colorOptions` - רשימת הצבעים/העיצובים לבחירה (כרגע placeholder: לבן / שחור / נייבי)
+- `orderDeadline` - תאריך סגירת ההזמנות, מוצג מתחת לכפתור
+- `infoLines` - שורות מידע חופשיות מעל הטופס (אופציונלי)
+
+## פרסום (GitHub Pages)
+
+באותה שיטה כמו הפרויקטים האחרים - ריפו ציבורי תחת vcarmel-cell + GitHub Pages.
