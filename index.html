@@ -23,15 +23,23 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     overflow: hidden;
   }
-  .header {
-    padding: 26px 24px 18px;
-    text-align: center;
-  }
+  .step { padding: 30px 24px 26px; }
+
+  .header { text-align: center; margin-bottom: 6px; }
   .header h1 { font-size: 20px; color: #1A1A2E; margin-bottom: 6px; }
   .header p { font-size: 13px; color: #5B5B6E; }
 
+  .intro-emoji { font-size: 40px; text-align: center; margin-bottom: 8px; }
+  .intro-title { font-size: 21px; font-weight: 800; text-align: center; margin-bottom: 18px; color: #1A1A2E; }
+  .intro-text { font-size: 15px; line-height: 1.7; color: #2B2B40; margin-bottom: 14px; }
+  .intro-text.highlight { background: #F6F4EC; border: 1px solid #EAE3C9; border-radius: 14px; padding: 14px 16px; }
+
+  .progress { display: flex; justify-content: center; gap: 6px; padding: 16px 0 0; }
+  .progress .dot { width: 8px; height: 8px; border-radius: 50%; background: #DADCE6; }
+  .progress .dot.active { background: #1B2C5C; }
+
   .details {
-    padding: 0 24px 8px;
+    padding: 0 0 8px;
     display: grid;
     gap: 12px;
   }
@@ -46,7 +54,6 @@
   .detail-row .text { font-size: 14px; color: #2B2B40; line-height: 1.4; }
   .detail-row .text b { display: block; font-size: 15px; color: #1A1A2E; }
 
-  form { padding: 22px 24px 26px; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 13px; font-weight: 700; color: #2B2B40; margin-bottom: 6px; }
   .field input[type=text], .field select {
@@ -56,25 +63,32 @@
   }
   .field input:focus, .field select:focus { outline: none; border-color: #C9A227; }
 
-  .size-group-label { font-size: 11px; color: #8A8A9E; margin: 4px 0 2px; }
-
   .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choice-list { display: grid; gap: 10px; }
   .choice-btn {
-    padding: 12px 10px; border-radius: 14px; border: 2px solid #DADCE6;
+    padding: 12px 14px; border-radius: 14px; border: 2px solid #DADCE6;
     background: #fff; cursor: pointer; font-family: inherit;
     font-size: 14px; font-weight: 700; color: #2B2B40;
-    transition: all 0.15s;
+    text-align: center; transition: all 0.15s;
   }
+  .choice-list .choice-btn { text-align: right; }
   .choice-btn:hover { border-color: #C9A227; }
   .choice-btn.selected { border-color: #1B2C5C; background: #EEF1FA; color: #1B2C5C; }
 
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; }
   .submit-btn {
-    width: 100%; margin-top: 20px; padding: 15px; border: none; border-radius: 14px;
+    flex: 1; padding: 15px; border: none; border-radius: 14px;
     background: linear-gradient(135deg, #1B2C5C, #0F1B3D); color: #fff;
     font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
   }
   .submit-btn:hover { opacity: 0.92; }
   .submit-btn:disabled { opacity: 0.6; cursor: default; }
+  .secondary-btn {
+    padding: 15px 18px; border-radius: 14px; border: 1.5px solid #DADCE6;
+    background: #fff; color: #2B2B40; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .secondary-btn:hover { border-color: #C9A227; }
 
   .hint { font-size: 12px; color: #8A8A9E; margin-top: 10px; text-align: center; }
   .error-msg { color: #DC2626; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
@@ -91,37 +105,72 @@
 <body>
 
 <div class="card">
-  <div class="header">
-    <h1 id="pageTitle">הזמנת חולצה</h1>
-    <p id="pageSubtitle">לקראת סיום שנת בר/בת המצווה של השכבה</p>
+
+  <!-- Step 1: Intro -->
+  <div class="step" id="step1">
+    <div class="intro-emoji">👕✨</div>
+    <div class="intro-title">מעצבים את החולצה שלנו!</div>
+    <p class="intro-text">הגיע הזמן לבחור את המוטו שיסיים את שנת המצווה שלנו!<br>והוא יודפס על חולצות הסיום שתקבלו.</p>
+    <p class="intro-text highlight">כל ילד וילדה מקבלים קפוצ'ון ממותג! 🎁</p>
+    <p class="intro-text">לכל מילה ושם יש משמעות – במיוחד בשנה הזו, שבה בחרתם שם בעל משמעות עמוקה כשהבעתם תקווה לחזרתו של איתן וכל החטופים, ובחרתם את השם איתן.</p>
+    <div class="btn-row">
+      <button type="button" class="submit-btn" id="toStep2">בואו נתחיל</button>
+    </div>
+    <div class="progress"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
   </div>
 
-  <div class="details" id="eventDetails">
-    <!-- filled by script from EVENT config -->
+  <!-- Step 2: Motto -->
+  <div class="step hidden" id="step2">
+    <div class="header">
+      <h1>בחרו את המוטו שלכם</h1>
+      <p>אפשר לבחור מתוך הרשימה, או להציע מוטו משלכם</p>
+    </div>
+    <div class="choice-list" id="mottoChoices"></div>
+    <div class="field hidden" id="customMottoWrap">
+      <label for="customMotto">המוטו שאני מציע/ה</label>
+      <input type="text" id="customMotto" placeholder="כתבו כאן את המוטו שלכם">
+    </div>
+    <div class="btn-row">
+      <button type="button" class="secondary-btn" id="backTo1">חזרה</button>
+      <button type="button" class="submit-btn" id="toStep3" disabled>המשך</button>
+    </div>
+    <div class="progress"><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
   </div>
 
-  <form id="orderForm">
-    <div class="field">
-      <label for="fullName">שם מלא</label>
-      <input type="text" id="fullName" placeholder="שם הילד/ה" required>
+  <!-- Step 3: Order details -->
+  <div class="step hidden" id="step3">
+    <div class="header">
+      <h1>פרטי ההזמנה</h1>
     </div>
+    <div class="details" id="eventDetails"></div>
 
-    <div class="field">
-      <label for="sizeSelect">מידה</label>
-      <select id="sizeSelect" required>
-        <option value="" disabled selected>בחרו מידה</option>
-      </select>
-    </div>
+    <form id="orderForm">
+      <div class="field">
+        <label for="fullName">שם מלא</label>
+        <input type="text" id="fullName" placeholder="שם הילד/ה" required>
+      </div>
 
-    <div class="field">
-      <label>צבע / עיצוב</label>
-      <div class="choice-grid" id="colorChoices"></div>
-    </div>
+      <div class="field">
+        <label for="sizeSelect">מידה</label>
+        <select id="sizeSelect" required>
+          <option value="" disabled selected>בחרו מידה</option>
+        </select>
+      </div>
 
-    <button type="submit" class="submit-btn" id="submitBtn" disabled>שליחת הזמנה</button>
-    <div class="error-msg" id="errorMsg"></div>
-    <div class="hint" id="deadlineHint"></div>
-  </form>
+      <div class="field">
+        <label>צבע / עיצוב</label>
+        <div class="choice-grid" id="colorChoices"></div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="secondary-btn" id="backTo2">חזרה</button>
+        <button type="submit" class="submit-btn" id="submitBtn" disabled>שליחת הזמנה</button>
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="hint" id="deadlineHint"></div>
+    </form>
+    <div class="progress"><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
+  </div>
 
   <div class="thankyou" id="thankyou">
     <div class="emoji">👕</div>
@@ -134,7 +183,7 @@
 <script>
   // ---- Config: edit these to match the final event details ----
   const EVENT = {
-    // Free-text lines shown above the form (map/venue link etc). Leave the array empty to hide this block.
+    // Free-text lines shown above the order fields (map/venue link etc). Leave the array empty to hide this block.
     infoLines: [
       // { icon: "📅", label: "מועד סגירת ההזמנות", value: "לעדכן תאריך" }
     ],
@@ -146,8 +195,18 @@
     ],
 
     // Placeholder colors/designs — replace with the real options once decided
-    colorOptions: ["לבן", "שחור", "נייבי"]
+    colorOptions: ["לבן", "שחור", "נייבי"],
+
+    // Placeholder motto options — replace with the real shortlist once decided.
+    // A "custom suggestion" choice is always added automatically at the end of this list.
+    mottoOptions: [
+      "מוטו לדוגמה 1",
+      "מוטו לדוגמה 2",
+      "מוטו לדוגמה 3"
+    ]
   };
+
+  const CUSTOM_MOTTO_VALUE = '__custom__';
 
   function renderEventDetails() {
     const wrap = document.getElementById('eventDetails');
@@ -188,15 +247,37 @@
       btn.textContent = color;
       btn.dataset.color = color;
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('#colorChoices .choice-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         selectedColor = color;
-        updateSubmitState();
+        updateOrderSubmitState();
       });
       wrap.appendChild(btn);
     });
   }
   renderColors();
+
+  function renderMottos() {
+    const wrap = document.getElementById('mottoChoices');
+    wrap.innerHTML = '';
+    EVENT.mottoOptions.forEach(motto => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.textContent = motto;
+      btn.dataset.motto = motto;
+      btn.addEventListener('click', () => selectMotto(motto, false));
+      wrap.appendChild(btn);
+    });
+    const customBtn = document.createElement('button');
+    customBtn.type = 'button';
+    customBtn.className = 'choice-btn';
+    customBtn.textContent = 'אחר - אני מציע/ה מוטו משלי';
+    customBtn.dataset.motto = CUSTOM_MOTTO_VALUE;
+    customBtn.addEventListener('click', () => selectMotto(CUSTOM_MOTTO_VALUE, true));
+    wrap.appendChild(customBtn);
+  }
+  renderMottos();
 
   document.getElementById('deadlineHint').textContent = EVENT.orderDeadline
     ? `ניתן לעדכן את ההזמנה עד ${EVENT.orderDeadline}`
@@ -229,33 +310,82 @@
   }
   const fbReady = initFirebase();
 
-  // ---- Form state ----
+  // ---- Wizard navigation ----
   const STORAGE_KEY = 'shirt-order-id';
   let selectedColor = null;
+  let selectedMotto = null;
+  let mottoIsCustom = false;
 
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const step3 = document.getElementById('step3');
+  const thankyou = document.getElementById('thankyou');
+
+  function goToStep(step) {
+    [step1, step2, step3].forEach(s => s.classList.add('hidden'));
+    step.classList.remove('hidden');
+  }
+
+  document.getElementById('toStep2').addEventListener('click', () => goToStep(step2));
+  document.getElementById('backTo1').addEventListener('click', () => goToStep(step1));
+  document.getElementById('backTo2').addEventListener('click', () => goToStep(step2));
+
+  const customMottoWrap = document.getElementById('customMottoWrap');
+  const customMottoInput = document.getElementById('customMotto');
+  const toStep3Btn = document.getElementById('toStep3');
+
+  function selectMotto(motto, isCustom) {
+    document.querySelectorAll('#mottoChoices .choice-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.motto === motto);
+    });
+    mottoIsCustom = isCustom;
+    if (isCustom) {
+      customMottoWrap.classList.remove('hidden');
+      selectedMotto = customMottoInput.value.trim();
+      customMottoInput.focus();
+    } else {
+      customMottoWrap.classList.add('hidden');
+      selectedMotto = motto;
+    }
+    updateMottoNextState();
+  }
+
+  customMottoInput.addEventListener('input', () => {
+    if (mottoIsCustom) {
+      selectedMotto = customMottoInput.value.trim();
+      updateMottoNextState();
+    }
+  });
+
+  function updateMottoNextState() {
+    toStep3Btn.disabled = !selectedMotto;
+  }
+
+  toStep3Btn.addEventListener('click', () => goToStep(step3));
+
+  // ---- Order form (step 3) ----
   const sizeSelect = document.getElementById('sizeSelect');
   const submitBtn = document.getElementById('submitBtn');
   const form = document.getElementById('orderForm');
   const errorMsg = document.getElementById('errorMsg');
-  const thankyou = document.getElementById('thankyou');
 
-  function updateSubmitState() {
+  function updateOrderSubmitState() {
     const name = document.getElementById('fullName').value.trim();
     submitBtn.disabled = !(name && sizeSelect.value && selectedColor);
   }
-  document.getElementById('fullName').addEventListener('input', updateSubmitState);
-  sizeSelect.addEventListener('change', updateSubmitState);
+  document.getElementById('fullName').addEventListener('input', updateOrderSubmitState);
+  sizeSelect.addEventListener('change', updateOrderSubmitState);
 
   document.getElementById('editLink').addEventListener('click', () => {
     thankyou.style.display = 'none';
-    form.classList.remove('hidden');
+    goToStep(step1);
   });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorMsg.style.display = 'none';
     const name = document.getElementById('fullName').value.trim();
-    if (!name || !sizeSelect.value || !selectedColor) return;
+    if (!name || !sizeSelect.value || !selectedColor || !selectedMotto) return;
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'שולח...';
@@ -268,6 +398,8 @@
         name,
         size: sizeSelect.value,
         color: selectedColor,
+        motto: selectedMotto,
+        mottoIsCustom,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
 
@@ -280,7 +412,7 @@
         docId = ref.id;
         localStorage.setItem(STORAGE_KEY, docId);
       }
-      form.classList.add('hidden');
+      [step1, step2, step3].forEach(s => s.classList.add('hidden'));
       thankyou.style.display = 'block';
     } catch (err) {
       console.error(err);
@@ -305,12 +437,20 @@
         sizeSelect.value = d.size || '';
         if (d.color) {
           selectedColor = d.color;
-          document.querySelectorAll('.choice-btn').forEach(b => {
+          document.querySelectorAll('#colorChoices .choice-btn').forEach(b => {
             if (b.dataset.color === d.color) b.classList.add('selected');
           });
         }
-        updateSubmitState();
-        form.classList.add('hidden');
+        if (d.motto) {
+          if (d.mottoIsCustom) {
+            customMottoInput.value = d.motto;
+            selectMotto(CUSTOM_MOTTO_VALUE, true);
+          } else {
+            selectMotto(d.motto, false);
+          }
+        }
+        updateOrderSubmitState();
+        [step1, step2, step3].forEach(s => s.classList.add('hidden'));
         thankyou.style.display = 'block';
       }
     } catch (e) { console.warn(e); }
