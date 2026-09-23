@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול הזמנות חולצה</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #F4F6FB;
+    color: #1A1A2E;
+    direction: rtl;
+    padding: 24px 16px;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .sub { color: #6B7280; font-size: 13px; margin-bottom: 22px; }
+
+  .gate {
+    max-width: 340px; margin: 80px auto; background: #fff; border-radius: 16px;
+    padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center;
+  }
+  .gate input {
+    width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid #DADCE6;
+    font-size: 15px; margin: 14px 0; direction: rtl; font-family: inherit;
+  }
+  .gate button {
+    width: 100%; padding: 11px; border: none; border-radius: 10px;
+    background: #1B2C5C; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .gate .err { color: #DC2626; font-size: 13px; margin-top: 8px; display: none; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
+  .stat {
+    background: #fff; border-radius: 14px; padding: 16px 18px;
+    border: 1px solid #E5E7EB; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .stat .num { font-size: 26px; font-weight: 800; }
+  .stat .label { font-size: 12px; color: #6B7280; margin-top: 2px; }
+  .stat.accent .num { color: #B8860B; }
+
+  .toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 12px; }
+  .toolbar button {
+    padding: 8px 16px; border-radius: 9px; border: 1px solid #DADCE6; background: #fff;
+    font-size: 13px; cursor: pointer; font-family: inherit; font-weight: 600; color: #2B2B40;
+  }
+  .toolbar button:hover { background: #F1F5F9; }
+
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04); min-width: 640px; }
+  th, td { padding: 12px 14px; text-align: right; font-size: 14px; border-bottom: 1px solid #F0F1F5; }
+  th { background: #F8F9FC; font-size: 12px; color: #6B7280; font-weight: 700; }
+  tr:last-child td { border-bottom: none; }
+  .badge { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #EEF1FA; color: #1B2C5C; white-space: nowrap; }
+  .custom-tag { font-size: 11px; color: #B8860B; }
+  .empty { text-align: center; padding: 40px; color: #9CA3AF; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <h1 style="margin-bottom:4px;">כניסת מנהל</h1>
+  <p class="sub" style="margin-bottom:0;">הזינו קוד לצפייה בהזמנות החולצה</p>
+  <input type="password" id="passInput" placeholder="קוד גישה">
+  <button id="passBtn">כניסה</button>
+  <div class="err" id="passErr">קוד שגוי</div>
+</div>
+
+<div class="wrap" id="content" style="display:none;">
+  <h1>הזמנות חולצה - סיום שנת בר/בת מצווה</h1>
+  <p class="sub" id="lastUpdated"></p>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="statTotal">-</div><div class="label">סה"כ הזמנות</div></div>
+    <div class="stat accent"><div class="num" id="statTopDesign">-</div><div class="label">העיצוב הפופולרי ביותר</div></div>
+    <div class="stat"><div class="num" id="statCustom">-</div><div class="label">הצעות חופשיות</div></div>
+  </div>
+
+  <div class="toolbar">
+    <button id="refreshBtn">🔄 רענון</button>
+    <button id="exportBtn">⬇️ ייצוא ל-CSV</button>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr><th>שם</th><th>מידה</th><th>צבע</th><th>עיצוב / משפט לגב</th><th>עדכון אחרון</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="empty" id="emptyMsg" style="display:none;">עדיין אין הזמנות</div>
+</div>
+
+<script>
+  // Cosmetic gate only - not real security. Firestore rules control actual data access.
+  const ADMIN_PASSCODE = "shirt2026";
+
+  // Friendly labels for the two image-based design choices (keep in sync with index.html's EVENT.designImages)
+  const DESIGN_IMAGE_LABELS = {
+    'design-en': '🖼️ עיצוב תמונה - אנגלית',
+    'design-he': '🖼️ עיצוב תמונה - עברית'
+  };
+
+  document.getElementById('passBtn').addEventListener('click', tryEnter);
+  document.getElementById('passInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryEnter(); });
+
+  function tryEnter() {
+    const val = document.getElementById('passInput').value;
+    if (val === ADMIN_PASSCODE) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      loadData();
+    } else {
+      document.getElementById('passErr').style.display = 'block';
+    }
+  }
+
+  let fdb = null;
+  function loadScript(src) {
+    return new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = () => resolve(true); s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+  async function initFirebase() {
+    try {
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js');
+      await loadScript('firebase-config.js');
+      if (typeof firebase === 'undefined' || typeof firebaseConfig === 'undefined') throw new Error('SDK/config missing');
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      fdb = firebase.firestore();
+      await firebase.auth().signInAnonymously();
+      return true;
+    } catch (e) {
+      console.warn('Firebase init failed:', e.message);
+      return false;
+    }
+  }
+
+  let rows = [];
+
+  function showLoadError(msg) {
+    document.getElementById('emptyMsg').textContent = msg;
+    document.getElementById('emptyMsg').style.display = 'block';
+  }
+
+  async function loadData() {
+    const ok = await initFirebase();
+    if (!ok || !fdb) {
+      showLoadError('שגיאה בחיבור למסד הנתונים - בדקו את פרטי ה-Firebase');
+      return;
+    }
+    try {
+      const snap = await fdb.collection('shirt-orders').orderBy('updatedAt', 'desc').get();
+      rows = snap.docs.map(d => {
+        const v = d.data();
+        return {
+          name: v.name || '',
+          size: v.size || '',
+          color: v.color || '',
+          motto: v.motto || '',
+          mottoIsCustom: !!v.mottoIsCustom,
+          updatedAt: v.updatedAt && v.updatedAt.toDate ? v.updatedAt.toDate() : null
+        };
+      });
+      render();
+    } catch (e) {
+      console.warn('Failed to load orders:', e.message);
+      showLoadError('שגיאה בטעינת הנתונים - נסו לרענן');
+    }
+  }
+
+  function designLabel(r) {
+    if (!r.motto) return '-';
+    if (DESIGN_IMAGE_LABELS[r.motto]) return DESIGN_IMAGE_LABELS[r.motto];
+    const quoted = `"${r.motto}"`;
+    return r.mottoIsCustom ? `${quoted} <span class="custom-tag">(הצעה חופשית)</span>` : quoted;
+  }
+
+  function render() {
+    const tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+
+    if (rows.length === 0) {
+      document.getElementById('emptyMsg').style.display = 'block';
+    } else {
+      document.getElementById('emptyMsg').style.display = 'none';
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        const dateStr = r.updatedAt ? r.updatedAt.toLocaleString('he-IL') : '-';
+        tr.innerHTML = `
+          <td>${escapeHtml(r.name)}</td>
+          <td><span class="badge">${escapeHtml(r.size)}</span></td>
+          <td>${escapeHtml(r.color)}</td>
+          <td>${designLabel(r)}</td>
+          <td>${dateStr}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const counts = {};
+    let customCount = 0;
+    rows.forEach(r => {
+      if (r.motto) counts[r.motto] = (counts[r.motto] || 0) + 1;
+      if (r.mottoIsCustom) customCount++;
+    });
+    let topDesign = '-';
+    let topCount = 0;
+    Object.keys(counts).forEach(key => {
+      if (counts[key] > topCount) { topCount = counts[key]; topDesign = key; }
+    });
+    const topLabel = DESIGN_IMAGE_LABELS[topDesign] ? DESIGN_IMAGE_LABELS[topDesign].replace('🖼️ ', '') : topDesign;
+
+    document.getElementById('statTotal').textContent = rows.length;
+    document.getElementById('statTopDesign').textContent = rows.length ? `${topLabel} (${topCount})` : '-';
+    document.getElementById('statCustom').textContent = customCount;
+    document.getElementById('lastUpdated').textContent = 'עודכן: ' + new Date().toLocaleString('he-IL');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    let csv = '﻿שם,מידה,צבע,עיצוב/משפט,הצעה חופשית,עדכון אחרון\n';
+    rows.forEach(r => {
+      const dateStr = r.updatedAt ? r.updatedAt.toLocaleString('he-IL') : '';
+      const designText = DESIGN_IMAGE_LABELS[r.motto] ? DESIGN_IMAGE_LABELS[r.motto].replace('🖼️ ', '') : r.motto;
+      csv += `"${r.name.replace(/"/g,'""')}","${r.size}","${r.color.replace(/"/g,'""')}","${designText.replace(/"/g,'""')}",${r.mottoIsCustom ? 'כן' : 'לא'},"${dateStr}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'shirt-orders.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+</script>
+
+</body>
+</html>
